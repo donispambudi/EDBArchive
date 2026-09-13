@@ -1,0 +1,5 @@
+bin/
+.vscode/
+job-queue/__pycache__
+.env
+third-party/__pycache__

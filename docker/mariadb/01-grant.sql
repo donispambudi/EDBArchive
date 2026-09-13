@@ -1,0 +1,4 @@
+GRANT ALL PRIVILEGES ON *.*
+TO 'edbarchive'@'%';
+
+FLUSH PRIVILEGES;
