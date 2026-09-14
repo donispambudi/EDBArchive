@@ -1,0 +1,7 @@
+title: EDBArchive
+description: Documentation and reproducibility guide for EDBArchive
+theme: jekyll-theme-cayman
+url: https://donispambudi.github.io
+baseurl: /EDBArchive
+repository: donispambudi/EDBArchive
+show_downloads: false
