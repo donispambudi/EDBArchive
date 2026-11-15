@@ -14,9 +14,14 @@ shares can use the same registered database, table selection, column metadata,
 and protection defaults. Register and configure the database again only when a
 different source or a separate template is required.
 
-For the reproducibility scenario, register the included `tpcc` database,
-enable all of its tables and columns, and set only
-`district.d_next_o_id` to use FHE by default.
+The default installation already registers the included `tpcc` database with
+all 9 tables and all 92 columns. Its template contains the FHE defaults used
+by the supplied workloads. Reuse that template for the automated scenarios.
+
+The steps below demonstrate how to prepare an equivalent template manually
+when working with an unregistered source database. The example uses only
+`district.d_next_o_id` as its FHE default. A share can override copied defaults
+without changing the reusable database template.
 
 ## Configuration workflow
 
@@ -54,6 +59,10 @@ Sign in using the provided Data Provider account:
 | `admin@edbarchive.com` | `edbarchive` |
 
 ## 1. Register the database and tables
+
+Skip this step when reusing the `tpcc` registration created by the seeder. To
+exercise database registration manually, use an equivalent source database
+that has not already been registered.
 
 From the sidebar, open **Databases**, then select **Create Database**.
 

@@ -132,12 +132,12 @@ int main(int argc, char* argv[]) {
     std::cout << "   ├── Number of slots = " << crypto_context->GetEncodingParams()->GetBatchSize() << '\n';
     std::cout << "   └── Context file loaded successfully\n\n";
 
-    // ring dimension
-    int N = static_cast<int>(crypto_context->GetCryptoParameters()->GetElementParams()->GetRingDimension());
+    // Number of plaintext slots available for packed values.
+    const int slot_count = static_cast<int>(crypto_context->GetEncodingParams()->GetBatchSize());
 
     // create rotation key
     std::vector<int> rotation_keys = {};
-    for(int r = 1; r <= N / 2; r *= 2)
+    for(int r = 1; r <= slot_count / 2; r *= 2)
         rotation_keys.push_back(r);
 
     std::cout << "Loading rotation key:" << '\n';
@@ -281,8 +281,8 @@ int main(int argc, char* argv[]) {
                     ciphertext_num = c_ciphertext_ref;
                 }
 
-                if (slot_num > N){
-                    std::cerr << "Slot number (" << slot_num << ") > maximum slot available (" << N << ")\n";
+                if (slot_num > slot_count){
+                    std::cerr << "Slot number (" << slot_num << ") > maximum slot available (" << slot_count << ")\n";
                     return edbarchive::ExitCode::InvalidCiphertextFile;
                 }
 

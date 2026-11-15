@@ -270,14 +270,13 @@ int main(int argc, char* argv[]) {
             std::cerr << "Error loading context file\n";
             return edbarchive::ExitCode::InvalidContextFile;
         }
+
+        // Number of plaintext slots available for packed values.
+        size_t slot_count = static_cast<size_t>(crypto_context->GetEncodingParams()->GetBatchSize());
         std::cout << "   ├── Poly modulus degree (ring dimension) = " << crypto_context->GetCryptoParameters()->GetElementParams()->GetRingDimension() << '\n';
         std::cout << "   ├── Multiplicative depth = " << crypto_context->GetCryptoParameters()->GetElementParams()->GetParams().size() - 1 << '\n';
-        std::cout << "   ├── Number of slots = " << crypto_context->GetEncodingParams()->GetBatchSize() << '\n';
+        std::cout << "   ├── Number of slots = " << slot_count << '\n';
         std::cout << "   └── Context file loaded successfully\n\n";
-
-        // ring dimension
-        size_t N = static_cast<size_t>(crypto_context->GetCryptoParameters()->GetElementParams()->GetRingDimension());
-
 
         // loading key pair files
         std::cout << "Loading key pair file\n";
@@ -323,9 +322,9 @@ int main(int argc, char* argv[]) {
         }
         std::cout << "   ├── Relinearization key serialized successfully\n";
         
-        // generate and serialize rotation key (power of two up to N/2 for OpenFHE, for seal up to N/4-1)
+        // generate and serialize rotation key (power of two up to slot_count/2 for OpenFHE, for seal up to slot_count/4-1)
         std::vector<int> rotate_key = {};
-        for(size_t r = 1; r <= N / 2; r *= 2)
+        for(size_t r = 1; r <= slot_count / 2; r *= 2)
             rotate_key.push_back(static_cast<int>(r));
 
         crypto_context->EvalRotateKeyGen(private_key, rotate_key);
@@ -424,7 +423,7 @@ int main(int argc, char* argv[]) {
                     pending_updates = 0;
                 }
 
-                if(batch.size() == N){
+                if(batch.size() == slot_count){
                     lbcrypto::Plaintext plaintext = crypto_context->MakePackedPlaintext(batch);
                     auto ciphertext = crypto_context->Encrypt(public_key, plaintext);
 

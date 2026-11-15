@@ -41,8 +41,10 @@ separately using the third-party CLI.
 ## Reproducibility artifact
 
 The repository includes the TPCC database used by the Docker-based
-reproducibility environment. Instructions for building the containers,
-generating an encrypted bundle, and restoring it are provided in the
+reproducibility environment. On a clean installation, the seeder prepares two
+shares and queues their context, key, and bundle-generation jobs automatically.
+Instructions for monitoring, downloading, restoring, and manually recreating
+the workflow are provided in the
 [reproducibility guide](reproducibility.md).
 
 Generated bundles exclude both the public and private keys. A recipient can

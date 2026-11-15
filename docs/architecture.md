@@ -191,7 +191,10 @@ The MariaDB service has two roles in the data-provider stack:
 - it hosts the source database and temporary duplicate used during backup.
 
 The Docker environment initializes a TPCC database for reproduction. MariaDB
-initialization scripts run only when its data volume is empty.
+initialization scripts run only when its data volume is empty. The Laravel
+seeder registers the reproducibility metadata and queues one context job, one
+key-pair job, and two backup jobs; the worker then generates both seeded
+bundles in dependency order.
 
 ### Shared artifact storage
 

@@ -2,8 +2,8 @@ FROM node:22-bookworm-slim AS frontend
 
 WORKDIR /build
 
-COPY web/package.json ./
-RUN npm install --no-audit --no-fund
+COPY web/package.json web/package-lock.json ./
+RUN npm ci --no-audit --no-fund
 
 COPY web/resources ./resources
 COPY web/vite.config.js ./

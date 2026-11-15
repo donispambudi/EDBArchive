@@ -14,6 +14,12 @@ the job queue.
 This guide assumes that [Installation and Setup](../installation.md) has been
 completed and the EDBArchive services are running.
 
+The default Docker installation already seeds two shares and queues their
+complete context, key, and bundle-generation workflow. Use
+[Paper Reproducibility](../reproducibility.md) for that automated path. The
+pages in this guide document the manual web workflow for creating additional
+resources, templates, shares, or experimental configurations.
+
 ## Provider workflow
 
 ```text
@@ -89,9 +95,9 @@ Create a share, associate it with a recipient, add the configured database
 columns, review their protection, generate the bundle, and download the final
 artifact.
 
-## Reproducibility scenario
+## Manual example
 
-The documentation uses a small scenario intended to verify the complete
+The manual pages use a small example intended to demonstrate the complete web
 workflow without the restoration time of the full paper workload:
 
 | Setting | Value |
@@ -105,9 +111,9 @@ workflow without the restoration time of the full paper workload:
 | Data Provider | `admin@edbarchive.com` |
 | Recipient | `thirdparty@edbarchive.com` |
 
-The complete procedure is summarized in
+The automated and manual procedures are summarized in
 [Paper Reproducibility](../reproducibility.md). The three pages in this guide
-provide the detailed web-interface steps.
+provide detailed web-interface steps for the manual path.
 
 ## Generated output
 

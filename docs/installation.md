@@ -150,11 +150,28 @@ The first startup performs the following operations:
 3. creates the `tpcc` database;
 4. loads the included `docker/mariadb/03-tpcc.sql.gz` dataset;
 5. runs the Laravel migrations and database seeder;
-6. starts Apache and the Python job worker.
+6. registers the OpenFHE BFV context, Third Party key, TPC-C metadata, and two
+   reproducibility shares;
+7. queues context generation, key generation, and one backup job for each
+   seeded share;
+8. starts Apache and the Python job worker, which processes the four jobs in
+   dependency order.
 
 MariaDB initialization scripts run only when the MariaDB volume is empty.
 Laravel migrations and seeders run whenever the web container starts. The
 seeder uses `firstOrCreate()` so that existing records are not overwritten.
+On a clean installation, the seeded jobs run in this order:
+
+```text
+create-context
+create-keypair
+backup: district-workload
+backup: district-customer-item-workload
+```
+
+Container health indicates that the services are available; it does not mean
+that these long-running jobs have finished. Leave the stack running until the
+jobs reach `completed` before downloading the generated bundles.
 
 After a successful first run, the stack can be started in the background:
 
@@ -220,6 +237,10 @@ docker compose logs --tail=200 job-queue
 docker compose logs --tail=200 web
 ```
 
+After the services are healthy, continue with
+[Paper Reproducibility](reproducibility.md) to monitor the four seeded jobs and
+download or restore the two automatically generated bundles.
+
 ## Stop EDBArchive
 
 Stop and remove the containers while preserving the database and generated
@@ -234,9 +255,11 @@ storage may be deleted.
 
 ## Next steps
 
-- Continue with the [Data Provider Guide](data-provider/index.md) to create FHE
-  resources and generate a bundle.
-- After generating a bundle, use the
-  [Third-party Restoration Guide](third-party-guide.md) to restore it.
+- Continue with [Paper Reproducibility](reproducibility.md) for the recommended
+  automated artifact-evaluation workflow.
+- Use the [Data Provider Guide](data-provider/index.md) to create resources,
+  templates, shares, and bundles manually or to test another configuration.
+- Use the [Third-party Restoration Guide](third-party-guide.md) for the generic
+  standalone restoration workflow.
 - See [Troubleshooting](troubleshooting.md) if the build or startup fails.
 - Return to the [documentation index](index.md).

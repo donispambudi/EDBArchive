@@ -15,8 +15,11 @@ context already exists. Likewise, an existing generated key can be reused for
 multiple shares when it belongs to the same recipient and context and its
 lifecycle status remains appropriate.
 
-The default installation already provides the OpenFHE library and BFV scheme.
-They do not need to be created again for the reproducibility scenario.
+The default installation provides the OpenFHE library and BFV scheme. Its
+seeder also creates one BFV context, one Third Party key, and their generation
+jobs for the automated reproducibility scenarios. A provider can wait for and
+reuse those generated resources, or follow this page to create a separate
+context and key manually.
 
 ## Resource workflow
 
@@ -56,6 +59,10 @@ account:
 | Email | Password |
 |---|---|
 | `admin@edbarchive.com` | `edbarchive` |
+
+The numbered steps below are required only when creating resources manually.
+To reuse the seeded resources, wait until their context and key statuses are
+`generated`, then continue with database or share configuration.
 
 ## 1. Create an FHE context
 

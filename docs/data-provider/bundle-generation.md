@@ -14,9 +14,11 @@ Creating another bundle does not require recreating the library, scheme,
 context, key, or database metadata. A new share can reuse those system-wide
 resources when they remain suitable for its database and recipient.
 
-For the reproducibility scenario, the bundle includes every configured TPC-C
-table and column. Only `district.d_next_o_id` is protected with FHE; all other
-columns remain plaintext.
+The default installation automatically creates and generates the two shares
+documented in [Paper Reproducibility](../reproducibility.md). This page covers
+the manual workflow for creating an additional share. Its example includes
+every configured TPC-C table and column, but protects only
+`district.d_next_o_id` with FHE.
 
 ## Bundle workflow
 
@@ -44,7 +46,7 @@ Download bundle.tar.gz
 Before creating the share, ensure that:
 
 - the database configuration includes every TPC-C table and column.
-- `district.d_next_o_id` has default protection `fhe-secure`.
+- the `tpcc` database template contains all 9 tables and all 92 columns.
 - the BFV context has status `generated`.
 - the Third Party key has generation status `generated` and lifecycle status
   `active`.
@@ -58,7 +60,7 @@ not been prepared.
 
 From the sidebar, open **Shares**, then select **Create Share**.
 
-Complete the form for the reproducibility scenario:
+Complete the form for the manual example:
 
 | Field | Value |
 |---|---|
@@ -82,21 +84,33 @@ Detail page. A newly created share does not yet contain any share items.
 The **Share Items** section supports adding columns individually or adding all
 database columns previously enabled through **Configure Columns**.
 
-For the reproducibility scenario, select the generated Third Party key in the
-key field shown for the BFV context. Then select
+For the manual example, select the generated Third Party key in the key field
+shown for the BFV context. Then select
 **Add All Configured Columns** and confirm with **Add All**.
 
 ![Add all configured columns](../images/share-item-configuration.png)
 
 *Bulk-add action with the recipient key selected for the BFV context.*
 
-EDBArchive copies the database-level defaults into the new share items:
+EDBArchive copies the database-level defaults into the new share items. The
+seeded template includes defaults used by broader workloads, so edit the
+resulting share items until:
 
 - every configured table and column is included.
 - primary-key columns remain plaintext.
 - `district.d_next_o_id` uses `fhe-secure`, the generated BFV context, and the
   selected recipient key.
 - every other column remains plaintext without an FHE context or key.
+
+In particular, change these additional seeded FHE defaults to plaintext for
+the one-column manual example:
+
+- `customer.c_payment_cnt`
+- `customer.c_delivery_cnt`
+- `item.i_im_id`
+- `orders.o_carrier_id`
+- `orders.o_ol_cnt`
+- `orders.o_all_local`
 
 Only keys owned by the selected share recipient are shown. The bulk-add button
 is unavailable if an FHE column has no context or the recipient has no key for
@@ -138,7 +152,8 @@ The action queues a `backup` job and changes the bundle status to
 
 1. creates a temporary duplicate of the source database.
 2. retains the tables and columns selected in the share.
-3. encrypts `district.d_next_o_id` with the configured OpenFHE context and key.
+3. encrypts the share items marked `fhe-secure` with the configured OpenFHE
+   context and key.
 4. stores packed ciphertexts as binary files.
 5. exports the prepared database structure and remaining data to `dump.sql`.
 6. writes the FHE and reconstruction metadata.

@@ -1,27 +1,16 @@
 FROM ubuntu:24.04 AS openfhe-base
 
 ARG TARGETARCH
-ARG MARIADB_REPO_SETUP_SHA256=7325ac7755809ca3312b446bd832542421699298f25b701f9a111bb42df0c7c1
 ARG MARIADB_CONNECTOR_CPP_AMD64_SHA256=573c30182d2d76fa34bb0c3dc14a770ea4bdf7cfdaaff4f239a26a75f39c36f9
 ARG MARIADB_CONNECTOR_CPP_ARM64_SHA256=24bcbc1321c8e1db031920bbd150a863cdf4554adccfa179c87d0007a734efff
 
 ENV DEBIAN_FRONTEND=noninteractive
 
+# Ubuntu supplies Connector/C and the MariaDB CLI. Connector/C++ is downloaded
+# separately at the exact version and checksum selected for each architecture.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    apt-transport-https \
     ca-certificates \
     curl \
-    && curl -fsSL https://r.mariadb.com/downloads/mariadb_repo_setup \
-      -o /tmp/mariadb_repo_setup \
-    && echo "${MARIADB_REPO_SETUP_SHA256}  /tmp/mariadb_repo_setup" \
-      | sha256sum -c - \
-    && chmod +x /tmp/mariadb_repo_setup \
-    && /tmp/mariadb_repo_setup \
-      --mariadb-server-version=mariadb-12.1 \
-      --os-type=ubuntu \
-      --os-version=noble \
-      --skip-maxscale \
-    && rm /tmp/mariadb_repo_setup \
     && case "${TARGETARCH}" in \
       amd64) \
         connector_url='https://dlm.mariadb.com/4464930/Connectors/cpp/connector-cpp-1.1.7/mariadb-connector-cpp_1.1.7-1%2Bmaria~noble_amd64.deb'; \
@@ -39,7 +28,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && curl -fsSL "${connector_url}" -o /tmp/mariadb-connector-cpp.deb \
     && echo "${connector_sha256}  /tmp/mariadb-connector-cpp.deb" \
       | sha256sum -c - \
-    && apt-get update \
     && apt-get install -y --no-install-recommends \
     build-essential \
     cmake \
