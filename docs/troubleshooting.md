@@ -443,5 +443,5 @@ generated artifacts in the shared EDBArchive storage volume.
 
 ## Navigation
 
-- Previous: [Paper Reproducibility](reproducibility.md)
+- Previous: [Packing-method Benchmark](benchmark.md)
 - [Documentation index](index.md)

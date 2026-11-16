@@ -1,0 +1,22 @@
+{
+  "fhe": {
+    "erkin_bit_width": 14
+  },
+  "tables": [
+    {
+      "name": "district",
+      "primary_keys": ["d_w_id", "d_id"],
+      "encrypted_columns": ["d_next_o_id"]
+    },
+    {
+      "name": "customer",
+      "primary_keys": ["c_w_id", "c_d_id", "c_id"],
+      "encrypted_columns": ["c_payment_cnt"]
+    },
+    {
+      "name": "item",
+      "primary_keys": ["i_id"],
+      "encrypted_columns": ["i_im_id"]
+    }
+  ]
+}

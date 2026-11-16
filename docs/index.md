@@ -18,6 +18,7 @@ operations, third-party restoration, and reproduction of the paper artifact.
 - [Data Provider Guide](data-provider/index.md)
 - [Third-party Restoration Guide](third-party-guide.md)
 - [Paper Reproducibility](reproducibility.md)
+- [Packing-method Benchmark](benchmark.md)
 - [Troubleshooting](troubleshooting.md)
 
 ## System overview

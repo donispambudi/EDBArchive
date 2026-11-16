@@ -440,8 +440,18 @@ The bundle does not contain the public or private key. A third party can use
 the restored ciphertexts for supported homomorphic operations, but cannot
 decrypt them or encrypt new plaintext values using the bundle alone.
 
+## Packing-method benchmark
+
+The automated and manual procedures above verify the EDBArchive application
+workflow. A separate standalone benchmark compares baseline, Carpov, Erkin,
+and EDBArchive backup and restoration using the same seeded context, key pair,
+TPC-C database, and two protected-column scenarios.
+
+See [Packing-method Benchmark](benchmark.md) for the ready-to-run command,
+measurement boundaries, and result format.
+
 ## Navigation
 
 - Previous: [Third-party Restoration Guide](third-party-guide.md)
-- Next: [Troubleshooting](troubleshooting.md)
+- Next: [Packing-method Benchmark](benchmark.md)
 - [Documentation index](index.md)

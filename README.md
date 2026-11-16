@@ -54,6 +54,8 @@ instructions are available in the
 [EDBArchive documentation](https://donispambudi.github.io/EDBArchive/).
 
 The documentation source is maintained in the [`docs/`](docs/) directory.
+Instructions for comparing the supported packing methods are available in the
+[Packing-method Benchmark](docs/benchmark.md) guide.
 
 ## Paper
 

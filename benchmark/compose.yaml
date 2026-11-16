@@ -1,0 +1,34 @@
+name: edbarchive-benchmark
+
+services:
+  benchmark:
+    image: edbarchive-benchmark
+    build:
+      context: ..
+      dockerfile: benchmark/Dockerfile
+    environment:
+      BENCHMARK_DB_HOST: mariadb
+      BENCHMARK_DB_PORT: 3306
+      BENCHMARK_DB_USER: edbarchive
+      BENCHMARK_DB_PASSWORD: ${EDB_DB_PASSWORD:-edbarchive}
+      BENCHMARK_TEMP_DIR: /benchmark-tmp
+    volumes:
+      - ./configs:/configs:ro
+      - ./input:/input:ro
+      - ./results:/results
+      - ${BENCHMARK_TMP_DIR:-./tmp}:/benchmark-tmp
+      - edbarchive-storage:/edbarchive-storage:ro
+    networks:
+      - edbarchive
+    working_dir: /work
+
+networks:
+  edbarchive:
+    external: true
+    name: edbarchive_default
+
+volumes:
+  edbarchive-storage:
+    external: true
+    name: edbarchive_edbarchive-storage
+

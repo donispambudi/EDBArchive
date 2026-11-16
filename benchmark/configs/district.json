@@ -1,0 +1,12 @@
+{
+  "fhe": {
+    "erkin_bit_width": 14
+  },
+  "tables": [
+    {
+      "name": "district",
+      "primary_keys": ["d_w_id", "d_id"],
+      "encrypted_columns": ["d_next_o_id"]
+    }
+  ]
+}
