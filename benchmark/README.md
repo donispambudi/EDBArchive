@@ -4,6 +4,30 @@ This directory contains a standalone command-line benchmark for comparing the
 backup and restore behavior of four packing methods: baseline, Carpov, Erkin,
 and EDBArchive. It does not call the EDBArchive web application or job queue.
 
+## Compared methods
+
+All methods run on the same OpenFHE 1.4.0 build, BFV context, key pair,
+MariaDB service, and seeded TPC-C database.
+
+- **Baseline:** each protected value is encrypted as a separate ciphertext
+  without SIMD packing.
+- **Carpov-based:** protected values are packed into the polynomial
+  coefficients of a plaintext, following
+  [Carpov and Sirdey](https://doi.org/10.1145/2898445.2898452). In this
+  benchmark, restoration decrypts the coefficient-packed plaintext and
+  re-encrypts the individual values because the OpenFHE BFV interface used by
+  the implementation does not expose the required homomorphic coefficient
+  extraction operation.
+- **Erkin-based:** two protected values are packed into a single plaintext
+  slot using 14 bits per value, supporting integers from 0 to 2^14 - 1,
+  following [Erkin et al.](https://doi.org/10.1109/TIFS.2012.2190726).
+  Restoration decrypts the packed value and re-encrypts its individual
+  values.
+- **EDBArchive:** protected values are packed across configured tables and
+  columns into SIMD slots. Restoration uses homomorphic rotations to
+  reconstruct per-value ciphertexts, so no decryption is required. Its bundle
+  therefore also includes rotation keys.
+
 Context and key-pair generation are intentionally excluded. Every method uses
 the same existing OpenFHE context and key pair. During backup, every method
 generates and serializes `relinearization.bin`, matching the original method
@@ -55,6 +79,25 @@ The JSON files contain the table, primary-key, and encrypted-column metadata.
 The benchmark therefore does not query EDBArchive's web metadata tables to
 discover its workload. It only queries the TPCC database for the actual row
 values processed during backup and restore.
+
+## FHE configuration
+
+| Parameter | Value |
+|---|---|
+| FHE library | OpenFHE 1.4.0, Release build |
+| Scheme | BFV |
+| Ring dimension | 16,384 |
+| SIMD slots | 16,384 |
+| Multiplicative depth | 1 |
+| Plaintext modulus | 536,903,681 (approximately 2^29) |
+| Security level | `HEStd_128_classic` |
+
+The benchmark image disables OpenFHE examples, tests, and internal benchmarks
+during compilation. Docker provides the same software environment across
+hosts, but absolute timings still depend on the host hardware and available
+resources. Ciphertext counts are determined by the workload and each method's
+packing capacity. Bundle sizes are additionally affected by serialized
+evaluation keys, the SQL dump, archive metadata, and compression.
 
 Once the main deployment is running and all four seeded jobs have completed,
 run the complete benchmark suite from this directory. Waiting for both seeded
@@ -224,3 +267,38 @@ the same execution boundary as the standalone FHE backend and
 `total_elapsed_ms` for the complete wrapper workflow. Backup metrics
 additionally report the uncompressed tar and SQL dump sizes, selected
 compression level, and final compressed bundle size in bytes.
+
+## Mapping to paper results
+
+The comparison table in the paper is produced by `benchmark scenarios`. Its
+columns are derived from the generated metrics as follows:
+
+| Paper column | Metrics source | Conversion |
+|---|---|---|
+| Bundle (MiB) | `summary.csv`: `bundle_bytes` | bytes / 2^20 |
+| End-to-end Backup (s) | `summary.csv`: `backup_total_ms` | milliseconds / 1,000 |
+| End-to-end Restore (s) | `summary.csv`: `restore_total_ms` | milliseconds / 1,000 |
+| Ctxt Count | `<scenario>-<method>/backup-metrics.json`: `ciphertexts` | None |
+
+The end-to-end backup measurement includes database cloning, backend
+execution, database dumping, archive creation, compression, and cleanup. The
+end-to-end restore measurement includes extraction, database import, backend
+execution, and cleanup. For backend-only analysis, use `backup_backend_ms` and
+`restore_backend_ms` instead.
+
+Each scenario-method pair is executed once per benchmark run; the runner does
+not average repeated executions. Context and key-pair generation are excluded
+from every reported time. Run the suite repeatedly with distinct `--run-id`
+values if multiple observations are required.
+
+## References
+
+- Sergiu Carpov and Renaud Sirdey, “Another Compression Method for
+  Homomorphic Ciphertexts,” *Proceedings of the 4th ACM International Workshop
+  on Security in Cloud Computing*, pp. 44–50, 2016.
+  [https://doi.org/10.1145/2898445.2898452](https://doi.org/10.1145/2898445.2898452)
+- Zekeriya Erkin, Thijs Veugen, Tomas Toft, and Reginald L. Lagendijk,
+  “Generating Private Recommendations Efficiently Using Homomorphic
+  Encryption and Data Packing,” *IEEE Transactions on Information Forensics
+  and Security*, vol. 7, no. 3, pp. 1053–1066, 2012.
+  [https://doi.org/10.1109/TIFS.2012.2190726](https://doi.org/10.1109/TIFS.2012.2190726)
