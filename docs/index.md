@@ -39,6 +39,13 @@ separately using the third-party CLI.
 - One FHE library, scheme, context, and key pair per bundle
 - Docker support for Linux amd64 and ARM64
 
+The current artifact implements and evaluates OpenFHE 1.4.0 with BFV. The
+provider and third-party wrappers provide language-independent executable
+extension points for additional backends, but no other library or scheme
+implementation is included. See [implementation status and backend
+extensibility](architecture.md#implementation-status-and-backend-extensibility)
+for the distinction between available functionality and extension points.
+
 ## Reproducibility artifact
 
 The repository includes the TPCC database used by the Docker-based

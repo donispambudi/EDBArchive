@@ -42,10 +42,21 @@ third-party CLI.
 - Linux amd64 and ARM64 container builds
 
 The backend dispatch mechanism is designed to accommodate additional FHE
-libraries, schemes, and packing strategies. Shared backend definitions are
-provided under `backend/common/` and `third-party/common/` so researchers can
-implement paired provider and restoration backends for their own experiments.
-The current implementation provides OpenFHE BFV.
+libraries, schemes, and packing strategies, but the current artifact implements
+and evaluates only OpenFHE 1.4.0 with BFV. The data-provider and third-party
+wrappers independently select external executables named
+`<library_name>_<scheme_name>`. This process boundary is
+programming-language-independent.
+
+Researchers using C++ may reuse the definitions and reference code under
+`backend/common/`, `backend/openfhe_bfv/`, `third-party/common/`, and
+`third-party/openfhe_bfv/`. Other languages may implement the same external
+contracts directly. After a compatible provider/restoration executable pair
+has been deployed, its library and scheme can be registered through the web
+interface without changing the core application or wrapper dispatch logic.
+See [implementation status and backend
+extensibility](docs/architecture.md#implementation-status-and-backend-extensibility)
+for the precise implementation boundary.
 
 ## Documentation
 

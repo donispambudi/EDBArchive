@@ -24,6 +24,40 @@ The restoration path is intentionally separate from the provider-side job
 queue. A recipient runs the third-party CLI with a generated bundle and the
 connection details of a target MariaDB instance.
 
+## Implementation Status and Backend Extensibility
+
+EDBArchive separates reusable orchestration from FHE-specific implementations.
+A capability identified as a backend extension point is not necessarily
+included as an executable implementation in the current artifact.
+
+The architecture has two separate FHE backend boundaries:
+
+1. the data-provider backend creates cryptographic resources and encrypted
+   backup bundles; and
+2. the third-party backend consumes a bundle and restores its protected values.
+
+Both sides use the same `<library_name>_<scheme_name>` backend identity, but
+they are separate executables with different arguments and responsibilities.
+
+| Capability | Status | Notes |
+|---|---|---|
+| Web-based metadata, database, and share management | Implemented | Provided by the Laravel application |
+| Asynchronous FHE job processing | Implemented | Supports context, key-pair, and backup jobs |
+| Provider-side database preparation and bundle creation | Implemented | Reusable orchestration around the selected provider executable |
+| Third-party bundle extraction and database import | Implemented | Reusable orchestration around the selected restoration executable |
+| Language-independent executable dispatch | Implemented | Both wrappers invoke external executable files |
+| Backend selection using `<library_name>_<scheme_name>` | Implemented | Used independently on the provider and third-party sides |
+| OpenFHE 1.4.0 with BFV | Implemented and evaluated | Includes a compatible provider and restoration executable pair |
+| EDBArchive SIMD packing for OpenFHE BFV | Implemented and evaluated | Used by the current executable pair |
+| Additional FHE libraries or schemes | Backend extension point | Requires a new compatible provider and restoration executable pair |
+| Alternative packing methods as production backends | Backend extension point | The benchmark implementations are standalone comparisons, not registered production backends |
+| Multiple libraries, schemes, contexts, or key pairs in one bundle | Not supported | Each bundle currently uses one compatible FHE configuration |
+
+The current repository therefore provides one complete backend pair: OpenFHE
+1.4.0 with BFV. References to other libraries, schemes, or packing strategies
+describe extension points in the architecture, not other working backends
+included in the artifact.
+
 ## Data-provider components
 
 ### Management web application
@@ -112,46 +146,83 @@ For a backup job, the wrapper also duplicates the selected source database,
 removes unselected tables and columns from the duplicate, exports the processed
 database, creates the archive, and removes the temporary database.
 
-### Extending the FHE backend
+### Backend extension model
 
-The backend boundary is intended to support experimentation with other FHE
-libraries, schemes, and packing strategies. Shared definitions are provided in
-the following directories:
+The integration boundary is process-based rather than
+programming-language-specific. `fhe_wrapper.sh` and `third_party.sh` invoke
+external executables and do not depend on the language or framework used to
+implement them. A backend may therefore be written in C++, Rust, Python, or
+another language, provided that its executable:
 
-```text
-backend/common/       Provider-side backend definitions
-third-party/common/   Restoration-side backend definitions
-```
+1. is available inside the corresponding runtime;
+2. accepts the command-line arguments defined for that side of the workflow;
+3. reads the expected configuration and artifact formats;
+4. produces the expected artifacts or database transformation;
+5. follows the defined exit-code behavior; and
+6. is named `<library_name>_<scheme_name>` using the normalized library and
+   scheme identity.
 
-These headers define common artifact names, command names, backend arguments,
-and exit codes used by the current implementations. They provide a starting
-contract for researchers, rather than a dynamically loaded plugin API.
+The two executable contracts are distinct:
 
-A new implementation should provide a matching pair of executables:
+| Side | Runtime executable | Responsibility |
+|---|---|---|
+| Data provider | `bin/<library_name>_<scheme_name>` | Create contexts and key pairs, and transform selected values into an encrypted backup |
+| Third party | `<third-party-bin>/<library_name>_<scheme_name>` | Interpret bundle artifacts and restore protected values in the target database |
 
-```text
-Provider:     <library_name>_<scheme_name>
-Restoration:  <library_name>_<scheme_name>
-```
+The provider and restoration executables must agree on the bundle metadata and
+cryptographic artifact formats, but they do not share the same command-line
+interface. The provider executable receives a workspace, job identifier, and
+database configuration. The restoration executable receives an extracted
+bundle directory, target database name, and database configuration.
 
-The provider executable creates the cryptographic artifacts and transforms the
-selected values into the representation stored in the bundle. The restoration
-executable interprets those artifacts and reconstructs the protected columns
-in the target database. This pairing allows researchers to replace the current
-SIMD packing logic with another packing method while retaining the surrounding
-database-selection, job-processing, archive, and restoration workflow
+Replacing a backend does not require changes to the surrounding EDBArchive
+orchestration, provided that both executables satisfy their respective
+contracts. Metadata management, job scheduling, source-database preparation,
+bundle creation, extraction, database import, cleanup, and execution reporting
+remain handled by the existing system.
 
-To integrate another backend, researchers must also:
+Backend integration consists of two steps:
 
-1. register the library and scheme metadata in the management application.
-2. define the scheme parameters exposed by the web interface.
-3. preserve the wrapper's executable naming and argument conventions.
-4. define compatible provider-side and restoration-side artifact metadata.
-5. add both executables to the CMake and Docker build process.
+1. **Deployment:** provide compatible provider-side and third-party
+   executables in their respective runtime locations. The executables must be
+   included in the native or container build used for deployment.
+2. **Registration:** add the library, scheme, and scheme-parameter metadata
+   through the web interface.
+
+After the executables have been deployed, the backend can be selected through
+the web interface without modifying the Laravel application, Python worker, or
+wrapper dispatch logic. Registering metadata alone does not install an
+executable, selecting an undeployed backend produces a backend-not-found error.
 
 Custom artifact formats may extend `config.json`, but the top-level FHE library
 and scheme identity must remain available so that the third-party wrapper can
-select the correct restoration executable.
+select the corresponding restoration executable.
+
+#### Reusing the C++ definitions
+
+The executable boundary is language-independent, but the repository provides
+reusable definitions and reference implementations for researchers who choose
+C++:
+
+```text
+backend/common/edbarchive.hpp              Provider-side definitions
+backend/common/json.hpp                    Provider-side JSON support
+backend/openfhe_bfv/openfhe_bfv.cpp        Provider reference implementation
+third-party/common/edbarchive.hpp          Restoration-side definitions
+third-party/common/json.hpp                Restoration-side JSON support
+third-party/openfhe_bfv/openfhe_bfv.cpp    Restoration reference implementation
+```
+
+The common headers define conventions such as backend arguments, artifact
+names, commands where applicable, and exit codes. The two headers are separate
+because the provider and restoration executables have different contracts.
+The OpenFHE BFV sources may be used as reference implementations or starting
+points for another C++ backend.
+
+These files are shared definitions and examples rather than a complete
+abstract C++ SDK. Their reuse is optional. A backend written in another
+language remains compatible when it implements the same external command-line,
+configuration, artifact, and exit-code contracts.
 
 Extensibility applies across backend implementations and bundles. It does not
 allow multiple FHE configurations to be mixed inside one bundle. All protected
@@ -166,7 +237,7 @@ The web bundle-generation flow limits a share to one FHE key, and the provider
 backend additionally rejects jobs containing different context or key-pair
 references. Because each context belongs to one scheme, this also restricts the
 bundle to a single scheme. Support for another scheme would therefore produce a
-separate bundle using the matching provider and restoration backend.
+separate bundle using the matching provider and restoration executables.
 
 ### OpenFHE BFV backend
 
