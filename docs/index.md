@@ -43,7 +43,7 @@ The current artifact implements and evaluates OpenFHE 1.4.0 with BFV. The
 provider and third-party wrappers provide language-independent executable
 extension points for additional backends, but no other library or scheme
 implementation is included. See [implementation status and backend
-extensibility](architecture.md#implementation-status-and-backend-extensibility)
+extensibility](architecture.html#implementation-status-and-backend-extensibility)
 for the distinction between available functionality and extension points.
 
 ## Reproducibility artifact
